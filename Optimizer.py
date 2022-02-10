@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from OptimizationErrors import *
 from Constraints import *
 
 class Optimizer(ABC):
@@ -7,7 +6,6 @@ class Optimizer(ABC):
     Абстрактный класс-оптимайзер.
     Конкретные реализации алгоритмов оптимизации должны наследоваться от данного класса
     """
-    possible_errors = [LimitExceedError, FirstGroundBoundaryError, SecondGroundBoundaryError]
 
     @abstractmethod
     def __init__(self, *args, **kwargs):
