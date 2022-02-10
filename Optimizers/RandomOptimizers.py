@@ -1,169 +1,167 @@
-from abc import ABC, abstractmethod
-import numpy as np
+from Optimizer import Optimizer
+from OptimizerResult import OptimizerResult
 from numpy.random import uniform
 from numpy.linalg import norm
-
-from Optimization.OptimizationErrors import *
-
-# TODO: Добавить методы для удаления ограничений 1-го и 2-го рода по ключу
-# TODO: Проверить качество и правильность реализации метода случайного сканирования
-# TODO: Добавить еще несколько реализацций алгоритмов оптимизации
-# TODO: Написать нормальную документацию для каждого класса
+import numpy as np
 
 
 
-class Optimizer(ABC):
-    """
-    Абстрактный класс-оптимайзер.
-    Конкретные реализации алгоритмов оптимизации должны наследоваться от данного класса
-    """
-    possible_errors = [LimitExceedError, FirstGroundBoundaryError, SecondGroundBoundaryError]
-    def __init__(self,
-                 x_vec,
-                 params=None,
-                 adapters=dict(),
-                 first_ground_boundary=dict(),
-                 second_ground_boundary=dict(),
-                 x_lims=None,
-                 t_func=None,
+class RandomSearchOptimizer(Optimizer):
+
+    def __init__(self, N=100, M=10, t0=1., R=0.1, alpha=1.618, beta=0.618, min_felta_f=0.):
+        self.N = N
+        self.M = M
+        self.t0 = t0
+        self.R = R
+        self.alpha = alpha
+        self.beta = beta
+        self.min_delta_f = min_felta_f
+
+
+    @staticmethod
+    def _get_yj(x_cur, tk):
+        """
+
+        :param x_cur:
+        :param tk:
+        :return:
+        """
+        ksi = uniform(-1, 1, len(x_cur))
+        yj = x_cur + tk * ksi / norm(ksi)
+        return yj
+
+    @staticmethod
+    def _get_zj(x_cur, alpha, yj):
+        """
+
+        :param x_cur:
+        :param alpha:
+        :param yj:
+        :return:
+        """
+        zj = x_cur + alpha * (yj - x_cur)
+        return zj
+
+    def optimize(self,
+                 t_func,
+                 x0,
+                 args=tuple(),
+                 bounds=None,
+                 constraints=None,
                  out_func=None):
-        self.x_vec = x_vec
-        self.params = params
-        self.adapters = adapters
-        self.first_ground_boundary = first_ground_boundary
-        self.second_ground_boundary = second_ground_boundary
-        self.x_lims = x_lims
-        self.t_func = t_func
-        self.out_func = out_func
 
-    def add_new_adapter(self, key, adapt_func) -> None:
-        """
-        Метод для добавления в задачу нового адаптера
-        :param adapt_func: Функция, лямбда-функция, классовый метод и т.д(callable объект)
-        :return: None
-        """
-        self.adapters[key] = adapt_func
+        f_evals = 0
+        f_evals_errs = 0
+        steps_total = 0
+        bad_steps_cur = 1
 
-    def _adapt(self, x_vec_new: list) -> None:
-        """
-        Метод адаптирует параметры задачи(подставляет значения x_vec_new в необходимые поля params для решения
-        целевой функции
-        :param x_vec_new: Новый вектор варьируемых параметров X
-        :return: None
-        """
-        if self.adapters:
-            for func in self.adapters.values():
-                func(x_vec_new, self.params)
+        try:
+            last_x = np.ones_like(x0)
+            bound_check = self._check_constraints(last_x*x0, bounds)
+            last_f = t_func(last_x * self.x_vec, *args)
+            f_evals += 1
+            constraints_check = self._check_constraints(last_x*x0, bounds)
 
-    def remove_adapter(self, key):
+            if not all((bound_check, constraints_check)):
+                return OptimizerResult(
+                    last_x*x0,
+                    last_f,
+                    f_evals=f_evals,
+                    f_eval_errs=0,
+                    status=False,
+                    status_message='Ошибка при проверке ограничений на первом шаге',
+                    bounds=bounds,
+                    constraints=constraints
+                )
 
-        del self.adapters[key]
+        except:
+            return OptimizerResult(
+                    last_x*x0,
+                    last_f,
+                    f_evals=1,
+                    f_eval_errs=1,
+                    status=False,
+                    status_message='Ошибка при первом вычислении целевой функции',
+                    bounds=bounds,
+                    constraints=constraints
+                )
 
-    def add_first_ground_boundary(self, name: str, func_dict: dict) -> None:
-        """
-        Метод для добавления функций - ограничений первого рода
-        :param name: Название ограничения первого рода(оптимизатором не используется, необходимо для удобства
-        пользователя и возможности проще удалить при необходимости)
-        :param func_dict: Словарь с ключами func и lims, где func соответсвтует функция, лямбда и тд,
-        которая принимат в себе параметры задачи и сравнивает необходимые поля параметров или их преобразования с lims
-        :return: None
-        """
-        self.first_ground_boundary[name] = func_dict
+        while steps_total < self.N:
+            while bad_steps_cur < self.M:
 
-    def _check_first_ground_boundary(self, x_vec_cur):
-        """
-        Проверка ограничений 1-го рода. Если словарь ограничений пуст, проверяется только вхождение каждой компоненты
-        x_vec_cur в ограничения заданные x_lims
-        :param x_vec_cur: Текущая реализация вектора варьируемых параметров
-        :return: bool
-        """
-        if self.first_ground_boundary:
-            for func_dict_name, func_dict in self.first_ground_boundary.items():
-                res = func_dict['func'](x_vec_cur, self.params, func_dict['lim'])
-                if not res:
-                    func_dict['errors'] += 1
-                    raise FirstGroundBoundaryError(func_dict_name)
+                yj = x0 * self._get_yj(last_x, self.t0)
 
-        if len(self.x_lims) != len(x_vec_cur):
-            raise Exception("Длина вектора варьируемых параметров не совпадает с длиной вектора ограничений")
-        else:
-            check_list = [lim[0] <= x <= lim[1] for lim, x in zip(self.x_lims, x_vec_cur)]
-            if not all(check_list):
-                raise LimitExceedError(x_vec_cur, self.x_lims)
+                try:
+                    bounds_check = self._check_constraints(yj, bounds)
+                    if bounds_check:
+                        cur_f = t_func(yj, *args)
+                        f_evals += 1
+                        constraints_check = self._check_constraints(yj, constraints)
+                        if constraints_check & (cur_f <= last_f) & (abs(cur_f - last_f) > self.min_delta_f):
 
+                            zj = x0 * self._get_zj(last_x, self.alpha, yj/x0)
 
-    def add_second_ground_boundary(self, name: str, func_dict: dict) -> None:
-        """
-        Добавление функций-ограничений второго рода
-        :param name: Название ограничения первого рода(оптимизатором не используется, необходимо
-        для удобства пользователяи возможности проще удалить при необходимости)
-        :param func_dict: Словарь с ключами func и lims, где func соответсвтует функция,
-        лямбда и тд, которая принимат в себея параметры
-        задачи и решение целевой функции и сравнивает необходимые поля решения с lims
-        :return: None
-        """
-        self.second_ground_boundary[name] = func_dict
+                            bounds_check = self._check_constraints(zj, bounds)
+                            if bounds_check:
+                                cur_f = t_func(zj, *args)
+                                f_evals += 1
+                                constraints_check = self._check_constraints(yj, constraints)
 
-    def _check_second_ground_boundary(self, x, y, solution, params):
-        """
-        Проверка ограничений 2-го рода
-        :param solution: Текущий результат решения целевой функции
-        :return: bool
-        """
+                                if constraints_check & (cur_f <= last_f) & (abs(cur_f - last_f) > self.min_delta_f):
+                                    last_x, last_f = zj / x0, cur_f
+                                    self.t0 *= self.alpha
+                                    steps_total += 1
 
-        if self.second_ground_boundary:
-            for func_dict_name, func_dict in self.second_ground_boundary.items():
-                res = func_dict['func'](y, solution, self.params, func_dict['lim'])
-                if not res:
-                    fine_func = func_dict.get('fine')
-                    if fine_func:
-                        y = fine_func(x, y, solution, params)
-                        func_dict['fines'] += 1
+                                    if self.out_func:
+                                        self.out_func(zj)
+                                    break
+                                else:
+                                    bad_steps_cur += 1
+                            else:
+                                bad_steps_cur += 1
+                        else:
+                            bad_steps_cur += 1
                     else:
-                        func_dict['errors'] += 1
-                        raise SecondGroundBoundaryError(func_dict_name)
-        return y
+                        bad_steps_cur
+                except:
+                    bad_steps_cur += 1
+                    f_evals += 1
+                    f_evals_errs += 1
 
-    def set_target_func(self, t_func) -> None:
-        """
-        Установка целевой функции
-        :param t_func: Целевая функция(callable)
-        :return:
-        """
-        self.t_func = t_func
+            if self.t0 <= self.R:
 
-    def set_out_func(self, o_func):
-        self.out_func = o_func
+                if not np.array_equal(last_x, np.ones_like(last_x)):
+                    return OptimizerResult(
+                        last_x*x0,
+                        last_f,
+                        f_evals=f_evals,
+                        f_eval_errs=f_evals_errs,
+                        status=False,
+                        status_message='Оптимизация завершилась неудачно, достигнут минимальный шаг',
+                        bounds=bounds,
+                        constraints=constraints
+                    )
+                else:
+                    return OptimizerResult(
+                        last_x * x0,
+                        last_f,
+                        f_evals=f_evals,
+                        f_eval_errs=f_evals_errs,
+                        status=True,
+                        status_message='Оптимизация завершилась удачно, достигнут минимальный шаг',
+                        bounds=bounds,
+                        constraints=constraints
+                    )
 
-    def clearify_errors(self):
-        '''
-        Зануление счетчиков ошибок для ограничений 1 и 2 рода
-        :return:
-        '''
-        if self.second_ground_boundary:
-            for func_dict in self.second_ground_boundary.values():
-                func_dict['errors'] = 0
-                func_dict['fines'] = 0
-
-        if self.first_ground_boundary:
-            for func_dict in self.first_ground_boundary.values():
-                func_dict['errors'] = 0
-
-    def get_optimization_summary(self, above_limits, target_func_calculated):
-        summary = {'t_func_calcs': target_func_calculated, 'first_ground': dict(), 'above_limits': above_limits, 'second_ground': dict()}
-
-        if self.second_ground_boundary:
-            for func_key, func_value in self.second_ground_boundary.items():
-                summary['second_ground'][func_key] = {'errors': func_value['errors']}
-                summary['second_ground'][func_key]['fines'] = func_value['fines']
-
-        if self.first_ground_boundary:
-            for func_key, func_value in self.first_ground_boundary.items():
-                summary['first_ground'][func_key] = {'errors': func_value['errors']}
-
-        return summary
+            return OptimizerResult(
+                last_x * x0,
+                last_f,
+                f_evals=f_evals,
+                f_eval_errs=f_evals_errs,
+                status=False,
+                status_message='Оптимизация завершилась неудачно, решение не сошлось',
+                bounds=bounds,
+                constraints=constraints
+            )
 
 
-    @abstractmethod
-    def optimize(self):
-        pass

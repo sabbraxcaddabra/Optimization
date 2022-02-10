@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from .OptimizationErrors import *
-from .Constraints import *
+from OptimizationErrors import *
+from Constraints import *
 
 class Optimizer(ABC):
     """
