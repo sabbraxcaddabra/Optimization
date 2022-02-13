@@ -57,15 +57,12 @@ class RandomSearchOptimizer(Optimizer):
 
         try:
             last_x = np.ones_like(x0)
-            bound_check = self._check_constraints(last_x*x0, bounds)
-            last_f = t_func(last_x * self.x_vec, *args)
-            f_evals += 1
-            constraints_check = self._check_constraints(last_x*x0, bounds)
-
+            bound_check = self._check_constraints(last_x*x0, bounds, args)
+            constraints_check = self._check_constraints(last_x * x0, bounds, args)
             if not all((bound_check, constraints_check)):
                 return OptimizerResult(
                     last_x*x0,
-                    last_f,
+                    np.nan,
                     f_evals=f_evals,
                     f_eval_errs=0,
                     status=False,
@@ -74,10 +71,14 @@ class RandomSearchOptimizer(Optimizer):
                     constraints=constraints
                 )
 
+            last_f = t_func(last_x * self.x_vec, *args)
+            f_evals += 1
+
+
         except:
             return OptimizerResult(
                     last_x*x0,
-                    last_f,
+                    np.nan,
                     f_evals=1,
                     f_eval_errs=1,
                     status=False,
@@ -92,26 +93,22 @@ class RandomSearchOptimizer(Optimizer):
                 yj = x0 * self._get_yj(last_x, self.t0)
 
                 try:
-                    bounds_check = self._check_constraints(yj, bounds)
-                    if bounds_check:
+                    bounds_check = self._check_constraints(yj, bounds, args)
+                    constraints_check = self._check_constraints(yj, constraints, args)
+                    if all((bounds_check, constraints_check)):
                         cur_f = t_func(yj, *args)
                         f_evals += 1
-                        constraints_check = self._check_constraints(yj, constraints)
-                        if constraints_check & (cur_f <= last_f) & (abs(cur_f - last_f) > self.min_delta_f):
-
+                        if (cur_f <= last_f) & (abs(cur_f - last_f) > self.min_delta_f):
                             zj = x0 * self._get_zj(last_x, self.alpha, yj/x0)
-
-                            bounds_check = self._check_constraints(zj, bounds)
-                            if bounds_check:
+                            bounds_check = self._check_constraints(zj, bounds, args)
+                            constraints_check = self._check_constraints(yj, constraints, args)
+                            if all((bounds_check, constraints_check)):
                                 cur_f = t_func(zj, *args)
                                 f_evals += 1
-                                constraints_check = self._check_constraints(yj, constraints)
-
-                                if constraints_check & (cur_f <= last_f) & (abs(cur_f - last_f) > self.min_delta_f):
+                                if (cur_f <= last_f) & (abs(cur_f - last_f) > self.min_delta_f):
                                     last_x, last_f = zj / x0, cur_f
                                     self.t0 *= self.alpha
                                     steps_total += 1
-
                                     if self.out_func:
                                         self.out_func(zj)
                                     break
@@ -122,7 +119,7 @@ class RandomSearchOptimizer(Optimizer):
                         else:
                             bad_steps_cur += 1
                     else:
-                        bad_steps_cur
+                        bad_steps_cur += 1
                 except:
                     bad_steps_cur += 1
                     f_evals += 1

@@ -8,9 +8,9 @@ class Constraint:
         self._name = name
         self._errors = 0
 
-    def check(self, x):
+    def check(self, x, args):
         # Проверка границ(для не сеточных методов)
-        res = self._lbound <= self.func(x) <= self._ubound
+        res = self._lbound <= self.func(x, *args) <= self._ubound
         if not res:
             self._errors += 1
         return res
@@ -39,7 +39,7 @@ class Bounds(Constraint):
 
     def __init__(self, lbound, ubound, name=''):
 
-        super().__init__(func=lambda x: x, lbound=lbound, ubound=ubound, name=name)
+        super().__init__(func=lambda x, *args: x, lbound=lbound, ubound=ubound, name=name)
 
     @classmethod
     def from_tuple(cls, tup):
