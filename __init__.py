@@ -1,6 +1,6 @@
 
-from .Optimizers import RandomOptimizers
+import Optimizers
 from .Constraints import Bounds, Constraint
 from .OptimizerResult import OptimizerResult
 
-__all__ = ['RandomOptimizers', 'Bounds', 'Constraint', 'OptimizerResult']
+__all__ = ['Optimizers', 'Bounds', 'Constraint', 'OptimizerResult']
