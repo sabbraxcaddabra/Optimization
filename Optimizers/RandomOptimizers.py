@@ -1,4 +1,4 @@
-from Optimizer import Optimizer
+from Optimizers.Optimizer import Optimizer
 from OptimizerResult import OptimizerResult
 from numpy.random import uniform
 from numpy.linalg import norm
