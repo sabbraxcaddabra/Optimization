@@ -1,3 +1,3 @@
-from RandomOptimizers import RandomSearchOptimizer
+from .RandomOptimizers import RandomSearchOptimizer
 
 __all__ = ['RandomSearchOptimizer']
