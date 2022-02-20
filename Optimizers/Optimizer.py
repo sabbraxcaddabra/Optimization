@@ -18,10 +18,18 @@ class Optimizer(ABC):
     def optimize(self, *args, **kwargs):
         pass
 
+    def _check_bounds(self, x_vec_cur, bounds):
+        if bounds:
+            for x, bound in zip(x_vec_cur, bounds):
+                res = bound.check(x)
+                if not res:
+                    return res
+        return True
+
     def _check_constraints(self, x_vec_cur, constraints, args):
         if constraints:
-            for x, constraint in zip(x_vec_cur, constraints):
-                res = constraint.check(x, *args)
+            for constraint in constraints:
+                res = constraint.check(x_vec_cur, *args)
                 if not res:
                     return res
         return True

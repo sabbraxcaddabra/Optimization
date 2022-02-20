@@ -1,5 +1,5 @@
 
-import Optimizers
+from . import Optimizers
 from .Constraints import Bounds, Constraint
 from .OptimizerResult import OptimizerResult
 
