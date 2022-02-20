@@ -19,12 +19,12 @@ class OptimizerResult:
 
     def __str__(self):
         text_string = ''
-        text_string += f'x_opt -- {self.x_opt}\n'
-        text_string += f'f_opt -- {self.f_opt}\n'
-        text_string += f'f_evals -- {self.f_evals}\n'
-        text_string += f'f_evals_errs -- {self.f_evals_errs}\n'
-        text_string += f'status -- {self.status}\n'
-        text_string += f'message -- {self.status_message}\n'
+        text_string += f'x_opt - {self.x_opt}\n'
+        text_string += f'f_opt - {self.f_opt}\n'
+        text_string += f'f_evals - {self.f_evals}\n'
+        text_string += f'f_eval_errs - {self.f_eval_errs}\n'
+        text_string += f'status - {self.status}\n'
+        text_string += f'message - {self.status_message}\n'
 
         if hasattr(self, 'bounds_summary'):
             text_string += 'bounds\n'
@@ -52,7 +52,7 @@ class ConstraintsSummary(dict):
     def __str__(self):
         text_string = ''
         for key, value in self.items():
-            text_string += f'\t{key} ограничение -- {value} ошибок\n'
+            text_string += f'\t{key} ограничение - {value} ошибок\n'
         return text_string
 
 if __name__ == '__main__':
