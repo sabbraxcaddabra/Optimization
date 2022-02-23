@@ -8,14 +8,14 @@ import numpy as np
 
 class RandomSearchOptimizer(Optimizer):
 
-    def __init__(self, N=100, M=10, t0=1., R=0.1, alpha=1.618, beta=0.618, min_felta_f=0.):
+    def __init__(self, N=100, M=10, t0=1., R=0.1, alpha=1.618, beta=0.618, min_delta_f=0.):
         self.N = N
         self.M = M
         self.t0 = t0
         self.R = R
         self.alpha = alpha
         self.beta = beta
-        self.min_delta_f = min_felta_f
+        self.min_delta_f = min_delta_f
 
     def show_options(self):
         print(
@@ -28,7 +28,6 @@ class RandomSearchOptimizer(Optimizer):
             f'min_delta_f = {self.min_delta_f}',
             sep='\n'
         )
-
 
     @staticmethod
     def _get_yj(x_cur, tk):
@@ -175,5 +174,103 @@ class RandomSearchOptimizer(Optimizer):
             bounds=bounds,
             constraints=constraints
         )
+
+class SRandomSearchOptimizer(Optimizer):
+
+    def __init__(self, N=50, min_delta_f=0.):
+        self.N = 50
+        self.min_delta_f = min_delta_f
+
+    def show_options(self):
+        print(
+            f'N = {self.N}',
+            f'min_delta_f = {self.min_delta_f}',
+            sep='\n'
+        )
+
+    def get_delta_z(self, K, max_bad_steps_cur, bad_steps_cur):
+        '''
+        Расчет приращения
+        '''
+        H = np.random.randn(K)
+        m = (1./(10*np.sqrt(K))) * np.exp(-1e3*(bad_steps_cur**2 + max_bad_steps_cur**2))
+        return m*H
+
+    def optimize(self,
+                 t_func,
+                 K,  # Число варьируемых параметров
+                 bounds,  # Границы поиска (ограничения 1 рода)
+                 args=tuple(),
+                 constraints=None,
+                 out_func=None):
+
+        f_evals = 0
+        f_evals_errs = 0
+        max_bad_steps_cur = 0  # Максимальное число неудачных шагов среди всех опорных точек
+        bad_steps_cur = 0  # Число неудачных шагов из одной опорной точки
+
+        z = np.ones(K) * 0.5
+        last_z = np.ones(K) * 0.5
+        lims = np.array([bound.to_list() for bound in bounds])
+
+        xx = lims[:, 0] + (lims[:, 1] - lims[:, 0])*z
+        last_xx = lims[:, 0] + (lims[:, 1] - lims[:, 0])*last_z
+
+        try:
+            constraints_check = self._check_constraints(last_xx, constraints, args)
+            if not constraints_check:
+                return OptimizerResult(
+                    last_xx,
+                    np.nan,
+                    f_evals=f_evals,
+                    f_eval_errs=0,
+                    status=False,
+                    status_message='Ошибка при проверке ограничений на первом шаге',
+                    bounds=bounds,
+                    constraints=constraints
+                )
+            else:
+                last_f = t_func(last_xx, *args)
+                f_evals += 1
+
+        except Exception as e:
+            print(e)
+            return OptimizerResult(
+                    last_xx,
+                    np.nan,
+                    f_evals=1,
+                    f_eval_errs=1,
+                    status=False,
+                    status_message='Ошибка при первом вычислении целевой функции',
+                    bounds=bounds,
+                    constraints=constraints
+                )
+
+        while bad_steps_cur <= self.N:
+            try:
+                z += self.get_delta_z(K, max_bad_steps_cur, bad_steps_cur)
+                xx = lims[:, 0] + (lims[:, 1] - lims[:, 0])*z
+                constraints_check = self._check_constraints(xx, constraints, args)
+                if constraints_check:
+                    cur_f = t_func(xx, *args)
+                    f_evals += 1
+                    if (cur_f <= last_f) & (abs(cur_f - last_f) > self.min_delta_f):
+                        last_f, last_z, last_xx = cur_f, z, xx
+                        max_bad_steps_cur = max(max_bad_steps_cur, bad_steps_cur)
+                        bad_steps_cur = 0
+                    else:
+                        bad_steps_cur += 1
+                else:
+                    bad_steps_cur
+            except:
+                f_evals_errs += 1
+                bad_steps_cur += 1
+
+
+
+
+
+
+
 
 

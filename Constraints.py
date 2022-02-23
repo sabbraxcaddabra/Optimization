@@ -45,6 +45,9 @@ class Bounds(Constraint):
     def from_tuple(cls, tup):
         return cls(tup[0], tup[1])
 
+    def to_list(self):
+        return [self.ubound, self.lbound]
+
 
 if __name__ == '__main__':
     bound = Bounds(1, 2)
