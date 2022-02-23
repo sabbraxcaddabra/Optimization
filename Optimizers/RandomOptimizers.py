@@ -178,7 +178,7 @@ class RandomSearchOptimizer(Optimizer):
 class SRandomSearchOptimizer(Optimizer):
 
     def __init__(self, N=50, min_delta_f=0.):
-        self.N = 50
+        self.N = N
         self.min_delta_f = min_delta_f
 
     def show_options(self):
