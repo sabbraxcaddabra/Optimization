@@ -266,7 +266,7 @@ class SRandomSearchOptimizer(Optimizer):
                 f_evals_errs += 1
                 bad_steps_cur += 1
 
-        if last_z == np.ones(K)*0.5:
+        if np.array_equal(last_z, np.ones(K)*0.5):
             return OptimizerResult(
                 last_xx,
                 last_f,
