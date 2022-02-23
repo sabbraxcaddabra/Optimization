@@ -252,7 +252,6 @@ class SRandomSearchOptimizer(Optimizer):
                 print(z)
                 xx = lims[:, 0] + (lims[:, 1] - lims[:, 0])*z
                 print(xx)
-                input()
                 constraints_check = self._check_constraints(xx, constraints, args)
                 if constraints_check:
                     cur_f = t_func(xx, *args)
