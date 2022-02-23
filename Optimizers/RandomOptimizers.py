@@ -258,7 +258,7 @@ class SRandomSearchOptimizer(Optimizer):
                     cur_f = t_func(xx, *args)
                     f_evals += 1
                     if (cur_f <= last_f) & (abs(cur_f - last_f) > self.min_delta_f):
-                        last_f, last_z, last_xx = cur_f, z, xx
+                        last_f, last_z, last_xx = cur_f, z.copy(), xx.copy()
                         max_bad_steps_cur = max(max_bad_steps_cur, bad_steps_cur)
                         bad_steps_cur = 0
                     else:
