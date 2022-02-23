@@ -46,7 +46,7 @@ class Bounds(Constraint):
         return cls(tup[0], tup[1])
 
     def to_list(self):
-        return [self.ubound, self.lbound]
+        return [self.lbound, self.ubound]
 
 
 if __name__ == '__main__':
