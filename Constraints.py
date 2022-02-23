@@ -8,7 +8,7 @@ class Constraint:
         self._name = name
         self._errors = 0
 
-    def check(self, x, args):
+    def check(self, x, *args):
         # Проверка границ(для не сеточных методов)
         res = self._lbound <= self.func(x, *args) <= self._ubound
         if not res:
