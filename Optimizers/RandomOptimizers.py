@@ -248,10 +248,11 @@ class SRandomSearchOptimizer(Optimizer):
 
         while bad_steps_cur <= self.N:
             try:
+                print(z)
                 z += self.get_delta_z(K, max_bad_steps_cur, bad_steps_cur)
                 print(z)
+                input()
                 xx = lims[:, 0] + (lims[:, 1] - lims[:, 0])*z
-                print(xx)
                 constraints_check = self._check_constraints(xx, constraints, args)
                 if constraints_check:
                     cur_f = t_func(xx, *args)
