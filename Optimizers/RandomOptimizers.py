@@ -4,6 +4,9 @@ from numpy.random import uniform
 from numpy.linalg import norm
 import numpy as np
 
+# TODO №1 Добавить в вывод в результат безразмерных параметров
+# TODO №2 Добавить сохранение истории поиска
+# TODO №3 Подумать над рандомизированной фиксацией некоторых компонент вектора варьируемых параметров
 
 
 class RandomSearchOptimizer(Optimizer):
