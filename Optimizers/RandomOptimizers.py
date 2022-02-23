@@ -266,6 +266,27 @@ class SRandomSearchOptimizer(Optimizer):
                 f_evals_errs += 1
                 bad_steps_cur += 1
 
+        if last_z == np.ones(K)*0.5:
+            return OptimizerResult(
+                last_xx,
+                last_f,
+                f_evals=f_evals,
+                f_eval_errs=f_evals_errs,
+                status=False,
+                status_message='Оптимизация завершилась неудачно, достигнут минимальный шаг',
+                bounds=bounds,
+                constraints=constraints
+            )
+        return OptimizerResult(
+            last_xx,
+            last_f,
+            f_evals=f_evals,
+            f_eval_errs=f_evals_errs,
+            status=True,
+            status_message='Оптимизация завершилась удачно, израсходованно макс. число неудачных шагов',
+            bounds=bounds,
+            constraints=constraints
+        )
 
 
 
