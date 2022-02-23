@@ -193,7 +193,7 @@ class SRandomSearchOptimizer(Optimizer):
         Расчет приращения
         '''
         H = np.random.randn(K)
-        m = (1./(10*np.sqrt(K))) * np.exp(-1e3*(bad_steps_cur**2 + max_bad_steps_cur**2))
+        m = (1./(10*np.sqrt(K))) * np.exp(-1e-3*(bad_steps_cur**2 + max_bad_steps_cur**2))
         return m*H
 
     def optimize(self,
