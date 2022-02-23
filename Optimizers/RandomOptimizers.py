@@ -266,7 +266,7 @@ class SRandomSearchOptimizer(Optimizer):
                     else:
                         bad_steps_cur += 1
                 else:
-                    bad_steps_cur
+                    bad_steps_cur += 1
             except:
                 f_evals_errs += 1
                 bad_steps_cur += 1
