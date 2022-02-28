@@ -201,7 +201,7 @@ class SRandomSearchOptimizer(Optimizer):
 
     def optimize(self,
                  t_func,
-                 K,  # Число варьируемых параметров
+                 x0_vec,
                  bounds,  # Границы поиска (ограничения 1 рода)
                  args=tuple(),
                  constraints=None,
@@ -212,12 +212,13 @@ class SRandomSearchOptimizer(Optimizer):
         max_bad_steps_cur = 0  # Максимальное число неудачных шагов среди всех опорных точек
         bad_steps_cur = 0  # Число неудачных шагов из одной опорной точки
 
+        K = len(x0_vec)
         z = np.ones(K) * 0.5
         last_z = np.ones(K) * 0.5
         lims = np.array([bound.to_list() for bound in bounds])
 
-        xx = lims[:, 0] + (lims[:, 1] - lims[:, 0])*z
-        last_xx = lims[:, 0] + (lims[:, 1] - lims[:, 0])*last_z
+        xx = x0_vec.copy()
+        last_xx = x0_vec.copy()
 
         try:
             constraints_check = self._check_constraints(last_xx, constraints, args)
