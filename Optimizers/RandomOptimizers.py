@@ -101,10 +101,13 @@ class RandomSearchOptimizer(Optimizer):
                     constraints=constraints
                 )
 
+
+        tk = self.t0
+
         while steps_total < self.N:
             while bad_steps_cur < self.M:
 
-                yj = x0 * self._get_yj(last_x, self.t0)
+                yj = x0 * self._get_yj(last_x, tk)
 
                 try:
                     bounds_check = self._check_bounds(yj, bounds)
@@ -121,7 +124,7 @@ class RandomSearchOptimizer(Optimizer):
                                 f_evals += 1
                                 if (cur_f <= last_f) & (abs(cur_f - last_f) > self.min_delta_f):
                                     last_x, last_f = zj / x0, cur_f
-                                    self.t0 *= self.alpha
+                                    tk *= self.alpha
                                     steps_total += 1
                                     if self.out_func:
                                         self.out_func(zj)
@@ -139,7 +142,7 @@ class RandomSearchOptimizer(Optimizer):
                     f_evals += 1
                     f_evals_errs += 1
 
-            if self.t0 <= self.R:
+            if tk <= self.R:
 
                 if np.array_equal(last_x, np.ones_like(last_x)):
                     return OptimizerResult(
@@ -164,7 +167,7 @@ class RandomSearchOptimizer(Optimizer):
                         constraints=constraints
                     )
             else:
-                self.t0 *= self.beta
+                tk *= self.beta
                 bad_steps_cur = 1
 
         return OptimizerResult(
