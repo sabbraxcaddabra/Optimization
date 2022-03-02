@@ -8,6 +8,7 @@ import numpy as np
 # TODO №2 Добавить сохранение истории поиска
 # TODO №3 Подумать над рандомизированной фиксацией некоторых компонент вектора варьируемых параметров
 
+np.random.seed(42)
 
 class RandomSearchOptimizer(Optimizer):
 
