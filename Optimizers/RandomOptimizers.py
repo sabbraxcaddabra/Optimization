@@ -129,7 +129,7 @@ class RandomSearchOptimizer(Optimizer):
                         if (cur_f <= last_f) & (abs(cur_f - last_f) > self.min_delta_f):
                             zj = x0 * self._get_zj(last_x, self.alpha, yj/x0)
                             bounds_check = self._check_bounds(zj, bounds)
-                            constraints_check = self._check_constraints(yj, constraints, args)
+                            constraints_check = self._check_constraints(zj, constraints, args)
                             if all((bounds_check, constraints_check)):
                                 cur_f = t_func(zj, *args)
                                 f_evals += 1
