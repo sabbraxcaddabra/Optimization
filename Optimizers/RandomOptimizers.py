@@ -8,11 +8,10 @@ import numpy as np
 # TODO №2 Добавить сохранение истории поиска
 # TODO №3 Подумать над рандомизированной фиксацией некоторых компонент вектора варьируемых параметров
 
-np.random.seed(42)
 
 class RandomSearchOptimizer(Optimizer):
 
-    def __init__(self, N=100, M=10, t0=1., R=0.1, alpha=1.618, beta=0.618, min_delta_f=0.):
+    def __init__(self, N=100, M=10, t0=1., R=0.1, alpha=1.618, beta=0.618, min_delta_f=0., random_state=42):
         self.N = N
         self.M = M
         self.t0 = t0
@@ -20,6 +19,8 @@ class RandomSearchOptimizer(Optimizer):
         self.alpha = alpha
         self.beta = beta
         self.min_delta_f = min_delta_f
+
+        np.random.seed(random_state)
 
     def show_options(self):
         print(
@@ -184,9 +185,11 @@ class RandomSearchOptimizer(Optimizer):
 
 class SRandomSearchOptimizer(Optimizer):
 
-    def __init__(self, N=50, min_delta_f=0.):
+    def __init__(self, N=50, min_delta_f=0., random_state=42):
         self.N = N
         self.min_delta_f = min_delta_f
+
+        np.random.seed(random_state)
 
     def show_options(self):
         print(
