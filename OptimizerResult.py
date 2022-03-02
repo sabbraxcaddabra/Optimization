@@ -5,13 +5,15 @@ class OptimizerResult:
     Класс для хранения и обработки результатов оптимизации
     '''
 
-    def __init__(self, x_opt, f_opt, f_evals, f_eval_errs, status, status_message, bounds=None, constraints=None):
+    def __init__(self, x_opt, f_opt, f_evals, f_eval_errs, status, status_message, f_history, x_history, bounds=None, constraints=None):
         self.x_opt = x_opt
         self.f_opt = f_opt
         self.f_evals = f_evals
         self.f_eval_errs = f_eval_errs
         self.status = status
         self.status_message = status_message
+        self.x_history = x_history
+        self.f_history = f_history
         if bounds:
             self.bounds_summary = ConstraintsSummary(bounds)
         if constraints:

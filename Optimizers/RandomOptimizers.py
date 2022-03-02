@@ -71,6 +71,9 @@ class RandomSearchOptimizer(Optimizer):
         steps_total = 0
         bad_steps_cur = 1
 
+        search_history_x = []
+        search_history_f = []
+
         try:
             last_x = np.ones_like(x0)
             bound_check = self._check_bounds(last_x*x0, bounds)
@@ -83,11 +86,15 @@ class RandomSearchOptimizer(Optimizer):
                     f_eval_errs=0,
                     status=False,
                     status_message='Ошибка при проверке ограничений на первом шаге',
+                    f_history=np.array(search_history_f),
+                    x_history=np.array(search_history_x),
                     bounds=bounds,
                     constraints=constraints
                 )
             else:
                 last_f = t_func(last_x * x0, *args)
+                search_history_x.append(last_x.copy())
+                search_history_f.append(last_f)
                 f_evals += 1
 
         except Exception as e:
@@ -99,6 +106,8 @@ class RandomSearchOptimizer(Optimizer):
                     f_eval_errs=1,
                     status=False,
                     status_message='Ошибка при первом вычислении целевой функции',
+                    f_history=np.array(search_history_f),
+                    x_history=np.array(search_history_x),
                     bounds=bounds,
                     constraints=constraints
                 )
@@ -126,6 +135,10 @@ class RandomSearchOptimizer(Optimizer):
                                 f_evals += 1
                                 if (cur_f <= last_f) & (abs(cur_f - last_f) > self.min_delta_f):
                                     last_x, last_f = zj / x0, cur_f
+
+                                    search_history_x.append(last_x.copy())
+                                    search_history_f.append(last_f)
+
                                     tk *= self.alpha
                                     steps_total += 1
                                     if self.out_func:
@@ -154,6 +167,8 @@ class RandomSearchOptimizer(Optimizer):
                         f_eval_errs=f_evals_errs,
                         status=False,
                         status_message='Оптимизация завершилась неудачно, достигнут минимальный шаг',
+                        f_history=np.array(search_history_f),
+                        x_history=np.array(search_history_x),
                         bounds=bounds,
                         constraints=constraints
                     )
@@ -165,6 +180,8 @@ class RandomSearchOptimizer(Optimizer):
                         f_eval_errs=f_evals_errs,
                         status=True,
                         status_message='Оптимизация завершилась удачно, достигнут минимальный шаг',
+                        f_history=np.array(search_history_f),
+                        x_history=np.array(search_history_x),
                         bounds=bounds,
                         constraints=constraints
                     )
@@ -179,6 +196,8 @@ class RandomSearchOptimizer(Optimizer):
             f_eval_errs=f_evals_errs,
             status=False,
             status_message='Оптимизация завершилась неудачно, решение не сошлось',
+            f_history=np.array(search_history_f),
+            x_history=np.array(search_history_x),
             bounds=bounds,
             constraints=constraints
         )
@@ -219,6 +238,9 @@ class SRandomSearchOptimizer(Optimizer):
         max_bad_steps_cur = 0  # Максимальное число неудачных шагов среди всех опорных точек
         bad_steps_cur = 0  # Число неудачных шагов из одной опорной точки
 
+        search_history_x = []
+        search_history_f = []
+
         K = len(x0_vec)
         z = np.ones(K) * 0.5
         last_z = np.ones(K) * 0.5
@@ -237,11 +259,15 @@ class SRandomSearchOptimizer(Optimizer):
                     f_eval_errs=0,
                     status=False,
                     status_message='Ошибка при проверке ограничений на первом шаге',
+                    f_history=np.array(search_history_f),
+                    x_history=np.array(search_history_x),
                     bounds=bounds,
                     constraints=constraints
                 )
             else:
                 last_f = t_func(last_xx, *args)
+                search_history_x.append(last_xx.copy())
+                search_history_f.append(last_f)
                 f_evals += 1
 
         except Exception as e:
@@ -253,6 +279,8 @@ class SRandomSearchOptimizer(Optimizer):
                     f_eval_errs=1,
                     status=False,
                     status_message='Ошибка при первом вычислении целевой функции',
+                    f_history=np.array(search_history_f),
+                    x_history=np.array(search_history_x),
                     bounds=bounds,
                     constraints=constraints
                 )
@@ -275,6 +303,10 @@ class SRandomSearchOptimizer(Optimizer):
                     f_evals += 1
                     if (cur_f <= last_f) & (abs(cur_f - last_f) > self.min_delta_f):
                         last_f, last_z, last_xx = cur_f, z.copy(), xx.copy()
+
+                        search_history_x.append(last_xx.copy())
+                        search_history_f.append(last_f)
+
                         max_bad_steps_cur = max(max_bad_steps_cur, bad_steps_cur)
                         bad_steps_cur = 0
                     else:
@@ -293,6 +325,8 @@ class SRandomSearchOptimizer(Optimizer):
                 f_eval_errs=f_evals_errs,
                 status=False,
                 status_message='Оптимизация завершилась неудачно, достигнут минимальный шаг',
+                f_history=np.array(search_history_f),
+                x_history=np.array(search_history_x),
                 bounds=bounds,
                 constraints=constraints
             )
@@ -303,6 +337,8 @@ class SRandomSearchOptimizer(Optimizer):
             f_eval_errs=f_evals_errs,
             status=True,
             status_message='Оптимизация завершилась удачно, израсходованно макс. число неудачных шагов',
+            f_history=np.array(search_history_f),
+            x_history=np.array(search_history_x),
             bounds=bounds,
             constraints=constraints
         )
