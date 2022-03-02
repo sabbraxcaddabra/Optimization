@@ -136,7 +136,7 @@ class RandomSearchOptimizer(Optimizer):
                                 if (cur_f <= last_f) & (abs(cur_f - last_f) > self.min_delta_f):
                                     last_x, last_f = zj / x0, cur_f
 
-                                    search_history_x.append(zj.copy())
+                                    search_history_x.append(last_x.copy())
                                     search_history_f.append(last_f)
 
                                     tk *= self.alpha
