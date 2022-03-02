@@ -93,7 +93,7 @@ class RandomSearchOptimizer(Optimizer):
                 )
             else:
                 last_f = t_func(last_x * x0, *args)
-                search_history_x.append(last_x.copy())
+                search_history_x.append((last_x * x0).copy())
                 search_history_f.append(last_f)
                 f_evals += 1
 
