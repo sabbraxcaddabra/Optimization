@@ -142,7 +142,7 @@ class RandomSearchOptimizer(Optimizer):
                                     tk *= self.alpha
                                     steps_total += 1
                                     if self.out_func:
-                                        self.out_func(zj, *args)
+                                        self.out_func(last_f, zj, *args)
                                     break
                                 else:
                                     bad_steps_cur += 1
@@ -311,7 +311,7 @@ class SRandomSearchOptimizer(Optimizer):
                         bad_steps_cur = 0
 
                         if self.out_func:
-                            self.out_func(last_xx, *args)
+                            self.out_func(last_f, last_xx, *args)
                         break
                     else:
                         bad_steps_cur += 1
