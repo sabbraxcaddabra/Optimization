@@ -312,7 +312,7 @@ class SRandomSearchOptimizer(Optimizer):
 
                         if out_func:
                             out_func(last_f, last_xx, *args)
-                        break
+
                     else:
                         bad_steps_cur += 1
                 else:
