@@ -15,16 +15,13 @@ class RandomOptimizer(Optimizer):
         self._dropout = dropout
         self._dropout_proba = dropout_proba
 
-    def random_fix(self, x_vec):
 
-        dropout_mask = np.random.rand(x_vec.shape[0]) > self._dropout_proba
+class RandomSearchOptimizer(RandomOptimizer):
 
+    def __init__(self, N=100, M=10, t0=1., R=0.1, alpha=1.618, beta=0.618,
+                 min_delta_f=0., random_state=42, dropout=False, dropout_proba=0.5):
 
-
-
-class RandomSearchOptimizer(Optimizer):
-
-    def __init__(self, N=100, M=10, t0=1., R=0.1, alpha=1.618, beta=0.618, min_delta_f=0., random_state=42):
+        super().__init__(dropout=dropout, dropout_proba=dropout_proba)
         self.N = N
         self.M = M
         self.t0 = t0
@@ -47,8 +44,7 @@ class RandomSearchOptimizer(Optimizer):
             sep='\n'
         )
 
-    @staticmethod
-    def _get_yj(x_cur, tk):
+    def _get_yj(self, x_cur, tk):
         """
 
         :param x_cur:
@@ -56,11 +52,16 @@ class RandomSearchOptimizer(Optimizer):
         :return:
         """
         ksi = uniform(-1, 1, len(x_cur))
-        yj = x_cur + tk * ksi / norm(ksi)
+
+        if self._dropout:
+            dropout_mask = np.random.rand(x_cur.shape[0]) > self._dropout_proba
+        else:
+            dropout_mask = np.ones(x_cur.shape[0])
+
+        yj = x_cur + dropout_mask * tk * ksi / norm(ksi)
         return yj
 
-    @staticmethod
-    def _get_zj(x_cur, alpha, yj):
+    def _get_zj(self, x_cur, alpha, yj):
         """
 
         :param x_cur:
@@ -194,9 +195,11 @@ class RandomSearchOptimizer(Optimizer):
             constraints=constraints
         )
 
-class SRandomSearchOptimizer(Optimizer):
+class SRandomSearchOptimizer(RandomOptimizer):
 
-    def __init__(self, N=50, min_delta_f=0., random_state=42):
+    def __init__(self, N=50, min_delta_f=0., random_state=42, dropout=False, dropout_proba=0.5):
+
+        super().__init__(dropout=dropout, dropout_proba=dropout_proba)
         self.N = N
         self.min_delta_f = min_delta_f
 
@@ -213,9 +216,16 @@ class SRandomSearchOptimizer(Optimizer):
         '''
         Расчет приращения
         '''
+
+        if self._dropout:
+            dropout_mask = np.random.rand(K) > self._dropout_proba
+            print(dropout_mask)
+        else:
+            dropout_mask = np.ones(K)
+
         H = np.random.randn(K)
         m = (1./(10*np.sqrt(K))) * np.exp(-1e-3*(bad_steps_cur**2/self.N**2 + max_bad_steps_cur**2/self.N**2))
-        return m*H
+        return m*H*dropout_mask
 
     def optimize(self,
                  t_func,
