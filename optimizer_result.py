@@ -58,7 +58,7 @@ class ConstraintsSummary(dict):
         return text_string
 
 if __name__ == '__main__':
-    from Constraints import Bounds, Constraint
+    from constraints import Bounds, Constraint
     bound = Bounds(1, 2)
     cons = Constraint(lambda x: x, 1, 2)
     con2 = Constraint(lambda x: x, 1, 2)

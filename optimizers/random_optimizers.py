@@ -1,5 +1,5 @@
-from .Optimizer import Optimizer
-from ..OptimizerResult import OptimizerResult
+from .optimizer import Optimizer
+from ..optimizer_result import OptimizerResult
 from numpy.random import uniform
 from numpy.linalg import norm
 import numpy as np
@@ -7,6 +7,19 @@ import numpy as np
 # TODO №1 Добавить в вывод в результат безразмерных параметров
 # TODO №2 Добавить сохранение истории поиска
 # TODO №3 Подумать над рандомизированной фиксацией некоторых компонент вектора варьируемых параметров
+
+class RandomOptimizer(Optimizer):
+
+    def __init__(self, dropout=False, dropout_proba=0.5):
+
+        self._dropout = dropout
+        self._dropout_proba = dropout_proba
+
+    def random_fix(self, x_vec):
+
+        dropout_mask = np.random.rand(x_vec.shape[0]) > self._dropout_proba
+
+
 
 
 class RandomSearchOptimizer(Optimizer):
