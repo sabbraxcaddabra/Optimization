@@ -219,7 +219,6 @@ class SRandomSearchOptimizer(RandomOptimizer):
 
         if self._dropout:
             dropout_mask = np.random.rand(K) > self._dropout_proba
-            print(dropout_mask)
         else:
             dropout_mask = np.ones(K)
 
